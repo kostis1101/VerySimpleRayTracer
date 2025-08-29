@@ -1,10 +1,11 @@
 
 
 #include <opencv2/opencv.hpp>
+#include <windows.h>
 #include <iostream>
-#include "green_math.h"
-#include "green_geometry.h"
-#include "object_import.h"
+#include "green_math/green_math.h"
+#include "green_geometry/green_geometry.h"
+#include "object_import/object_import.h"
 
 using namespace cv;
 using namespace std;
@@ -83,6 +84,13 @@ void render(cv::Mat& img, Camera& cam, std::vector<Triangle>& tris) {
 	}
 }
 
+std::wstring ExePath() {
+	TCHAR buffer[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+	return std::wstring(buffer).substr(0, pos);
+}
+
 
 int main(int argc, char** argv)
 {
@@ -95,9 +103,10 @@ int main(int argc, char** argv)
 	);
 
 	Camera cam = Camera(Vec3(5, -5, 0), Vec3(-1, 1, 0).normalized(), 0, 3, img.size[1], img.size[0]);
-	std::vector<Triangle> tris = read_obj_file("Resources\\suzan.obj");
+	std::vector<Triangle> tris = read_obj_file(argv[1]);
 
 	cout << "Triangles: " << tris.size() << endl;
+	std::wcout << ExePath() << endl;
 
 	render(img, cam, tris);
 

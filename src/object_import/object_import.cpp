@@ -1,7 +1,7 @@
 
 #include "object_import.h"
-#include "green_math.h"
-#include "green_geometry.h"
+#include "../green_math/green_math.h"
+#include "../green_geometry/green_geometry.h"
 #include <vector>
 #include <iostream>
 #include <fstream>
