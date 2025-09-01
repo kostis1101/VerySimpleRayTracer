@@ -50,7 +50,7 @@ std::vector<Triangle> read_obj_file(std::string filename) {
 		return {};
 	}
 
-	std::vector<Vec3> verts;
+	std::vector<Vec3f> verts;
 	std::vector<Triangle> tris;
 
 	dtype data_type;
@@ -63,7 +63,7 @@ std::vector<Triangle> read_obj_file(std::string filename) {
 
 		switch (data_type) {
 			case VERTEX: {
-				Vec3 v;
+				Vec3f v;
 				fscanf_s(file, "%f %f %f ", &v.x, &v.y, &v.z);
 				verts.push_back(v);
 				break;

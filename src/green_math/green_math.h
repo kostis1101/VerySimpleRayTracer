@@ -1,41 +1,21 @@
 
 #pragma once
-#include <ostream>
 
-struct Vec3 {
-	float x;
-	float y;
-	float z;
-	static const Vec3 zero;
+#include "vector3.h"
+#include "vector2.h"
+#include "vec_length.h"
 
-	Vec3();
-	Vec3(float x, float y, float z);
+#include "bounds_box3.h"
+#include "ray.h"
+#include "ray_hit.h"
 
-	float magn();
-	float magn2();
-	void normalize();
-	Vec3 normalized();
+using Vec3f = Vec3<float>;
+using Vec3d = Vec3<double>;
+using Vec3i = Vec3<int>;
 
-	static float dot(Vec3&, Vec3&);
-	static Vec3 cross(Vec3&, Vec3&);
-	static float distance(Vec3&, Vec3&);
-	static float square_dist(Vec3&, Vec3&);
-};
+using Vec2f = Vec2<float>;
+using Vec2d = Vec2<double>;
+using Vec2i = Vec2<int>;
 
-float dot(Vec3& v1, Vec3& v2);
-
-Vec3 cross(Vec3 v1, Vec3 v2);
-
-Vec3 operator+ (Vec3 v1, Vec3 v2);
-
-Vec3 operator- (Vec3 v1, Vec3 v2);
-
-Vec3 operator*(float x, Vec3 v);
-
-Vec3 operator*(Vec3 v, float x);
-
-Vec3 operator/(float x, Vec3 v);
-
-Vec3 operator/(Vec3 v, float x);
-
-std::ostream& operator<< (std::ostream& os, Vec3 v);
+using Rayf = Ray<float>;
+using RayHitf = RayHit<float>;
