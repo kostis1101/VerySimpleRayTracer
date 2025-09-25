@@ -4,7 +4,12 @@
 
 
 Triangle::Triangle() : p1(), p2(), p3() {}
-Triangle::Triangle(Vec3f p1, Vec3f p2, Vec3f p3) : p1(p1), p2(p2), p3(p3) {}
+Triangle::Triangle(Vec3f p1, Vec3f p2, Vec3f p3) : p1(p1), p2(p2), p3(p3) {
+	normal = cross(p2 - p1, p3 - p1);
+	normal.normalize();
+}
+
+Triangle::Triangle(Vec3f p1, Vec3f p2, Vec3f p3, Vec3f normal) : p1(p1), p2(p2), p3(p3), normal(normal) {}
 
 /* credit to wikipedia, because I was to bored to write it... */
 RayHitf Triangle::ray_intersect(Rayf& r) {
@@ -42,10 +47,14 @@ RayHitf Triangle::ray_intersect(Rayf& r) {
 		return {};
 }
 
-Vec3f Triangle::normal() {
-	return cross(p3 - p1, p2 - p1).normalized();
-}
-
 Vec3f Triangle::center() {
 	return (p1 + p2 + p3) / 3.f;
+}
+
+void Triangle::reorient_normal(Vec3f& dir) {
+	if (dot(normal, dir) < 0) {
+		normal.x = -normal.x;
+		normal.y = -normal.y;
+		normal.z = -normal.z;
+	}
 }

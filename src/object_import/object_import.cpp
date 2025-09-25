@@ -13,7 +13,7 @@ using std::endl;
 
 
 
-typedef enum { VERTEX, FACE, UNSUPPORTED } dtype;
+typedef enum { VERTEX, FACE, VERTEX_NORMAL, UNSUPPORTED } dtype;
 
 dtype get_dtype(FILE *file) {
 	switch (getc(file)) {
@@ -21,6 +21,8 @@ dtype get_dtype(FILE *file) {
 			switch (getc(file)) {
 				case ' ':
 					return VERTEX;
+				case 'n':
+					return VERTEX_NORMAL;
 				default:
 					return UNSUPPORTED;
 			}
@@ -40,6 +42,9 @@ void skip_to_next(FILE* file, char c) {
 	while (getc(file) != c);
 }
 
+
+/* supposes that the vertex normals and tagents are given */
+
 std::vector<Triangle> read_obj_file(std::string filename) {
 	// std::ifstream file(filename);
 	FILE* file;
@@ -51,6 +56,7 @@ std::vector<Triangle> read_obj_file(std::string filename) {
 	}
 
 	std::vector<Vec3f> verts;
+	std::vector<Vec3f> vert_norm;
 	std::vector<Triangle> tris;
 
 	dtype data_type;
@@ -68,15 +74,20 @@ std::vector<Triangle> read_obj_file(std::string filename) {
 				verts.push_back(v);
 				break;
 			}
+			case VERTEX_NORMAL: {
+				Vec3f vn;
+				fscanf_s(file, "%f %f %f ", &vn.x, &vn.y, &vn.z);
+				vert_norm.push_back(vn);
+				break;
+			}
 			case FACE: {
-				long long i, j, k;
-				fscanf_s(file, "%lld", &i);
-				skip_to_next(file, ' ');
-				fscanf_s(file, "%lld", &j);
-				skip_to_next(file, ' ');
-				fscanf_s(file, "%lld", &k);
-				skip_to_next(file, '\n');
-				tris.push_back(Triangle(verts[i - 1L], verts[j - 1L], verts[k - 1L]));
+				long long i, it, in;
+				long long j, jt, jn;
+				long long k, kt, kn;
+
+				fscanf_s(file, "%lld/%lld/%lld %lld/%lld/%lld %lld/%lld/%lld ", &i, &it, &in, &j, &jt, &jn, &k, &kt, &kn);
+				
+				tris.emplace_back(verts[i - 1L], verts[j - 1L], verts[k - 1L], vert_norm[in - 1]);
 				break;
 			}
 			default:

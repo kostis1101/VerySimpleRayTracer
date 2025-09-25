@@ -7,6 +7,12 @@
 using std::abs;
 using std::sqrt;
 
+static float clamp01(float x) {
+	if (x < 0) return 0;
+	else if (x > 1) return 1;
+	return x;
+}
+
 template<typename T = float>
 struct Vec3 {
 	T x, y, z;
@@ -45,6 +51,12 @@ struct Vec3 {
 		Vec3<float> vx = this - v;
 		Vec3<float> vy = cross(vx, v);
 		return v + vx * cos(angle) + vy * sin(angle);
+	}
+
+	void coords_clamp01() {
+		x = clamp01(x);
+		y = clamp01(y);
+		z = clamp01(z);
 	}
 
 	static T sqr_dist(Vec3<T>& v1, Vec3<T> v2) {

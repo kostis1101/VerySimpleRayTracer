@@ -74,7 +74,7 @@ void render(cv::Mat& img, Camera& cam, std::vector<Triangle>& tris) {
 			//img.at<Vec3b>(j, i) = Vec3b(colour, colour, colour);
 
 			if (hit.hit) {
-				Vec3f n = hit_tri->normal();
+				Vec3f n = hit_tri->normal;
 				img.at<Vec3b>(j, i) = Vec3b((uchar)(255 * std::abs(n.x)), 255 * std::abs(n.y), 255 * std::abs(n.z));
 			}
 			else {
@@ -82,6 +82,15 @@ void render(cv::Mat& img, Camera& cam, std::vector<Triangle>& tris) {
 			}
 		}
 	}
+}
+
+
+Vec3f shader(RayHitf& hit) {
+	Vec3f n = hit.tri->normal;
+	
+	float c = dot(n, Vec3f(0.2, -0.5, 0.3).normalized());
+
+	return Vec3f(c, c, c);
 }
 
 void render(cv::Mat& img, Camera& cam, BVH* bvh) {
@@ -96,11 +105,10 @@ void render(cv::Mat& img, Camera& cam, BVH* bvh) {
 			RayHitf hit = bvh->search_ray_hit(r);
 
 			if (hit.hit) {
-				Vec3f n = -1.f * hit.tri->normal();
+				Vec3f colour = shader(hit);
+				colour.coords_clamp01();
 
-				// float c = dot(n, Vec3f(0.4, 0.2, 0.5));
-
-				img.at<Vec3b>(j, i) = Vec3b((uchar)(255 * std::abs(n.x)), 255 * std::abs(n.y), 255 * std::abs(n.z));
+				img.at<Vec3b>(j, i) = Vec3b(255 * colour.z, 255 * colour.y, 255 * colour.x);
 			}
 			else {
 				img.at<Vec3b>(j, i) = Vec3b(0, 0, 0);
