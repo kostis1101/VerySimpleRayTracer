@@ -18,7 +18,7 @@ RayHitf Triangle::ray_intersect(Rayf& r) {
 	if (det > -epsilon && det < epsilon)
 		return {};    // This ray is parallel to this triangle.
 
-	float inv_det = 1.0 / det;
+	float inv_det = 1.0f / det;
 	Vec3f s = r.origin - p1;
 	float u = inv_det * dot(s, ray_cross_e2);
 
@@ -36,7 +36,7 @@ RayHitf Triangle::ray_intersect(Rayf& r) {
 
 	if (t > epsilon) // ray intersection
 	{
-		return RayHitf(Vec3f(r.origin + r.direction * t));
+		return RayHitf(Vec3f(r.origin + r.direction * t), t, this);
 	}
 	else // This means that there is a line intersection but not a ray intersection.
 		return {};
@@ -44,4 +44,8 @@ RayHitf Triangle::ray_intersect(Rayf& r) {
 
 Vec3f Triangle::normal() {
 	return cross(p3 - p1, p2 - p1).normalized();
+}
+
+Vec3f Triangle::center() {
+	return (p1 + p2 + p3) / 3.f;
 }

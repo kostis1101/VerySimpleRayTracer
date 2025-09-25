@@ -104,11 +104,6 @@ Vec2<T> operator*(Vec2<T>& v, float x) {
 }
 
 template<typename T = float>
-Vec2<T> operator/(float x, Vec2<T>& v) {
-	return Vec2<T>(v.x / x, v.y / x, v.z / x);
-}
-
-template<typename T = float>
 Vec2<T> operator/(Vec2<T>& v, float x) {
 	return Vec2<T>(v.x / x, v.y / x, v.z / x);
 }

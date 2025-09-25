@@ -39,6 +39,14 @@ struct Vec3 {
 		return Vec3(abs(x), abs(y), abs(z));
 	}
 
+	Vec3<float> rotate_around_axis(Vec3<float> axis, float angle) {
+		axis.normalize();
+		Vec3<float> v = this - axis * dot(axis, this);
+		Vec3<float> vx = this - v;
+		Vec3<float> vy = cross(vx, v);
+		return v + vx * cos(angle) + vy * sin(angle);
+	}
+
 	static T sqr_dist(Vec3<T>& v1, Vec3<T> v2) {
 		return (v1 - v2).magn2();
 	}
@@ -48,18 +56,18 @@ struct Vec3 {
 	}
 
 	static Vec3 max(Vec3& v1, Vec3& v2) {
-		Vec3(max(v1.x, v2.x), max(v1.y, v2.y), max(v1.z, v2.z));
+		return Vec3(std::max(v1.x, v2.x), std::max(v1.y, v2.y), std::max(v1.z, v2.z));
 	}
 
 	static Vec3 min(Vec3& v1, Vec3& v2) {
-		Vec3(min(v1.x, v2.x), min(v1.y, v2.y), min(v1.z, v2.z));
+		return Vec3(std::min(v1.x, v2.x), std::min(v1.y, v2.y), std::min(v1.z, v2.z));
 	}
 
-	static Vec3 all_ge(Vec3& v1, Vec3& v2) {
+	static bool all_ge(Vec3& v1, Vec3& v2) {
 		return v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z;
 	}
 
-	static Vec3 all_lt(Vec3& v1, Vec3& v2) {
+	static bool all_lt(Vec3& v1, Vec3& v2) {
 		return v1.x < v2.x && v1.y < v2.y && v1.z < v2.z;
 	}
 
@@ -74,6 +82,10 @@ struct Vec3 {
 		default:
 			return 0;
 		}
+	}
+
+	int max_axis() {
+		return ((x < z) & (y < z)) * 2 + ((x < y) & !(y < z));
 	}
 };
 
@@ -146,3 +158,4 @@ Vec3<T> operator-(Vec3<T> v, T x) {
 
 template<typename T>
 const Vec3<T> Vec3<T>::zero = Vec3<T>();
+
