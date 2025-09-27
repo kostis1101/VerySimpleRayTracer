@@ -93,7 +93,7 @@ Vec3f shader(RayHitf& hit) {
 	return Vec3f(c, c, c);
 }
 
-void render(cv::Mat& img, Camera& cam, BVH* bvh) {
+void render(cv::Mat& img, Camera& cam, BVH& bvh) {
 	float cam_width = 1;
 	float cam_height = img.size[0] / (float)img.size[1];
 
@@ -102,7 +102,7 @@ void render(cv::Mat& img, Camera& cam, BVH* bvh) {
 
 			Rayf r = cam.get_ray_at_pixel(i, j);
 
-			RayHitf hit = bvh->search_ray_hit(r);
+			RayHitf hit = bvh.search_ray_hit(r);
 
 			if (hit.hit) {
 				Vec3f colour = shader(hit);
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
 	cout << "Triangles: " << tris.size() << endl;
 
 	auto t0 = std::chrono::high_resolution_clock::now();
-	BVH* bvh = BVH::from_triangles(&tris[0], tris.size());
+	BVH bvh = BVH(tris);
 	auto t1 = std::chrono::high_resolution_clock::now();
 	cout << "BVH created in: " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() / 1000.f << "ms" << endl;
 	render(img, cam, bvh);

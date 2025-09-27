@@ -1,6 +1,7 @@
 
 #include "bvh.h"
 
+
 #include <iostream>
 
 using std::cout;
@@ -8,7 +9,7 @@ using std::endl;
 
 typedef BoundBox3<float> BoundBox3f;
 
-static void swap(Triangle* t1, Triangle* t2) {
+void swap(Triangle *t1, Triangle* t2) {
 	Triangle temp = *t1;
 	*t1 = *t2;
 	*t2 = temp;
@@ -52,17 +53,18 @@ tri_info get_tri_info(Triangle* tris, long tris_len) {
 
 
 /* TODO: optimize cache locality */
-BVH *BVH::from_triangles(Triangle *tris, long tris_len) {
-		
+long long BVH_node::from_triangles(Triangle* tris, long tris_len, std::vector<BVH_node>& nodes) {
+
 	tri_info ti = get_tri_info(tris, tris_len);
 	BoundBox3f boundbox = ti.first;
 	Vec3<float> center = ti.second;
 
 	if (tris_len <= BVH_MAX_OBJ) {
-		return new BVH(boundbox, tris, tris_len, nullptr, nullptr);
+		nodes.emplace_back(boundbox, tris, tris_len);
+		return nodes.size() - 1;
 	}
 
-	Vec3<float> diag = boundbox.diag();
+	Vec3f diag = boundbox.diag();
 
 	int dim = diag.max_axis();
 
@@ -83,12 +85,24 @@ BVH *BVH::from_triangles(Triangle *tris, long tris_len) {
 		for (; tris[j].center()[dim] > center[dim]; j--);
 	}
 
+	unsigned int newnode_index = nodes.size();
+	nodes.emplace_back(boundbox, tris, tris_len);
 
-	return new BVH(boundbox, tris, tris_len, from_triangles(tris, i), from_triangles(tris + i, tris_len - i));
+	long long c1 = from_triangles(tris, i, nodes);
+	long long c2 = from_triangles(tris + i, tris_len - i, nodes);
+	nodes[newnode_index].children_indicies[0] = c1;
+	nodes[newnode_index].children_indicies[1] = c2;
+
+	//nodes[newnode_index].children_indicies[0] = from_triangles(tris, i, nodes);
+	//cout << nodes[newnode_index].children_indicies[0] << endl;
+	//nodes[newnode_index].children_indicies[1] = from_triangles(tris + i, tris_len - i, nodes);
+	//cout << nodes[newnode_index].children_indicies[1] << endl;
+
+	return newnode_index;
 }
-
-// slab method: https://en.wikipedia.org/wiki/Slab_method
-bool BVH::ray_intersect(Rayf& r) {
+	
+// slab method: en.wikipedia.org/wiki/Slab_method
+bool BVH_node::ray_intersect(Rayf& r) {
 	float tmin[3] = {
 		(boundbox.min.x - r.origin.x) / r.direction.x,
 		(boundbox.min.y - r.origin.y) / r.direction.y,
@@ -107,10 +121,11 @@ bool BVH::ray_intersect(Rayf& r) {
 	return 0 <= tclose && tclose <= tfar;
 }
 
-RayHitf BVH::search_ray_hit(Rayf& r) {
+RayHitf BVH_node::search_ray_hit(Rayf& r, std::vector<BVH_node> &nodes) {
 	if (!ray_intersect(r))
 		return {};
 	
+	// children[0] == -1 if and only if the node is a leaf
 	if (!children[0]) {
 		float min_dist = std::numeric_limits<float>::infinity();
 		RayHitf hit;
@@ -125,8 +140,8 @@ RayHitf BVH::search_ray_hit(Rayf& r) {
 	}
 
 	// TODO: check which of the two children is in front and perform the first check there
-	RayHitf h1 = children[0]->search_ray_hit(r);
-	RayHitf h2 = children[1]->search_ray_hit(r);
+	RayHitf h1 = children[0]->search_ray_hit(r, nodes);
+	RayHitf h2 = children[1]->search_ray_hit(r, nodes);
 
 	if (!h1.hit)
 		return h2;
@@ -135,4 +150,13 @@ RayHitf BVH::search_ray_hit(Rayf& r) {
 	else if (h1.dist < h2.dist)
 		return h1;
 	else return h2;
+}
+
+
+bool BVH::ray_intersect(Rayf& r) {
+	return root->ray_intersect(r);
+}
+
+RayHitf BVH::search_ray_hit(Rayf& r) {
+	return root->search_ray_hit(r, nodes);
 }
