@@ -87,7 +87,9 @@ void render(cv::Mat& img, Camera& cam, std::vector<Triangle>& tris) {
 
 
 Vec3f shader(RayHitf& hit) {
-	Vec3f n = hit.tri->normal;
+
+	Vec3f n = hit.t2* hit.tri->vn2 + hit.t3 * hit.tri->vn3 + (1 - hit.t2 - hit.t3) * hit.tri->vn1;
+	n.normalize();
 	
 	float t1 = dot(n, Vec3f(0.2, -0.5, 0.3).normalized());
 	float t2 = dot(n, Vec3f(0.2, 0.2, 0.2).normalized());
@@ -175,26 +177,15 @@ int main(int argc, char** argv)
 	Mat img = cv::Mat(1000, 1000, CV_8UC3, cv::Vec3b(255, 0, 0));
 
 	Camera cam = Camera(Vec3f(5, -5, 0), Vec3f(-1, 1, 0).normalized(), 0, 3, img.size[1], img.size[0]);
-	std::vector<Triangle> tris = read_obj_file(argv[1]);
+	Scene scene = read_obj_file(argv[1]);
 
-	cout << "Triangles: " << tris.size() << endl;
+	cout << "Triangles: " << scene.tris.size() << endl;
 
 	auto t0 = std::chrono::high_resolution_clock::now();
-	BVH bvh = BVH(tris);
-
-/*	Rayf r(cam.pos, cam.dir);
-
-	cout << r.origin << " " << r.direction << endl;
-
-	bvh.search_ray_hit(r);
-
-	std::cin.get();
-
-	return 0;*/
-
+	BVH bvh = BVH(scene.tris);
 	auto t1 = std::chrono::high_resolution_clock::now();
 	cout << "BVH created in: " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() / 1000.f << "ms" << endl;
-	render_threaded(img, cam, bvh, 200, 500);
+	render_threaded(img, cam, bvh, 250, 125);
 	auto t2 = std::chrono::high_resolution_clock::now();
 	cout << "Rendered in: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.f << "ms" << endl;
 

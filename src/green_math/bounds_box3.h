@@ -67,17 +67,17 @@ BoundBox3<T> BoundBox3<T>::from_points(Vec3<T>* begin, long length) {
 
 template <typename T>
 BoundBox3<T> BoundBox3<T>::from_tris(Triangle* begin, long length) {
-	Vec3<T> min = begin[0].p1;
-	Vec3<T> max = begin[0].p1;
+	Vec3<T> min = begin[0].v1->pos;
+	Vec3<T> max = begin[0].v1->pos;
 
 	for (int i = 0; i < length; i++) {
-		min = Vec3<T>::min(min, begin[i].p1);
-		min = Vec3<T>::min(min, begin[i].p2);
-		min = Vec3<T>::min(min, begin[i].p3);
+		min = Vec3<T>::min(min, begin[i].v1->pos);
+		min = Vec3<T>::min(min, begin[i].v2->pos);
+		min = Vec3<T>::min(min, begin[i].v3->pos);
 
-		max = Vec3<T>::max(max, begin[i].p1);
-		max = Vec3<T>::max(max, begin[i].p2);
-		max = Vec3<T>::max(max, begin[i].p3);
+		max = Vec3<T>::max(max, begin[i].v1->pos);
+		max = Vec3<T>::max(max, begin[i].v2->pos);
+		max = Vec3<T>::max(max, begin[i].v3->pos);
 	}
 
 	return BoundBox3(min, max);

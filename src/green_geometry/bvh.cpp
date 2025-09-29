@@ -38,15 +38,15 @@ typedef std::pair<BoundBox3f, Vec3f> tri_info;
 
 /* returns the boundingbox and the center of centers of the triangles */
 tri_info get_tri_info(Triangle* tris, long tris_len) {
-	BoundBox3f bounds(tris[0].p1);
+	BoundBox3f bounds(tris[0].v1->pos);
 	Vec3f center;
 
 	for (int i = 0; i < tris_len; i++) {
-		bounds.insert_point(tris[i].p1);
-		bounds.insert_point(tris[i].p2);
-		bounds.insert_point(tris[i].p3);
+		bounds.insert_point(tris[i].v1->pos);
+		bounds.insert_point(tris[i].v2->pos);
+		bounds.insert_point(tris[i].v3->pos);
 
-		center = center + tris[i].p1 + tris[i].p2 + tris[i].p3;
+		center = center + tris[i].v1->pos + tris[i].v2->pos + tris[i].v3->pos;
 	}
 
 	return { bounds, center / (3.f * (float)tris_len) };
