@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 #include "object_import/object_import.h"
 #include "green_geometry/bvh.h"
@@ -122,6 +123,52 @@ void render(cv::Mat& img, Camera& cam, BVH& bvh) {
 }
 
 
+void render_region(cv::Mat& img, Camera& cam, BVH& bvh, int xmin, int xmax, int ymin, int ymax) {
+	float cam_width = 1;
+	float cam_height = img.size[0] / (float)img.size[1];
+
+	for (int j = ymin; j < ymax; j++) {
+		for (int i = xmin; i < xmax; i++) {
+
+			Rayf r = cam.get_ray_at_pixel(i, j);
+
+			RayHitf hit = bvh.search_ray_hit(r);
+
+			if (hit.hit) {
+				Vec3f colour = shader(hit);
+				colour.coords_clamp01();
+
+				img.at<Vec3b>(j, i) = Vec3b(255 * colour.z, 255 * colour.y, 255 * colour.x);
+			}
+			else {
+				img.at<Vec3b>(j, i) = Vec3b(0, 0, 0);
+			}
+		}
+	}
+}
+
+void render_threaded(cv::Mat& img, Camera& cam, BVH& bvh, int xsize, int ysize) {
+	int x_threads = img.size[1] / xsize + (img.size[1] % xsize == 0 ? 0 : 1);
+	int y_threads = img.size[0] / ysize + (img.size[0] % ysize == 0 ? 0 : 1);
+	int num_threads = x_threads * y_threads;
+
+	std::vector<std::thread> threads;
+	threads.reserve(num_threads);
+	for (int J = 0; J < y_threads; J++) {
+		for (int I = 0; I < x_threads; I++) {
+			threads.emplace_back(
+				render_region,
+				std::ref(img), std::ref(cam), std::ref(bvh),
+				I * xsize, min((I + 1) * xsize, img.size[1]), J * ysize, min((J + 1) * ysize, img.size[0])
+			);
+		}
+	}
+
+	for (int i = 0; i < threads.size(); i++) {
+		threads[i].join();
+	}
+}
+
 
 int main(int argc, char** argv)
 {
@@ -147,7 +194,7 @@ int main(int argc, char** argv)
 
 	auto t1 = std::chrono::high_resolution_clock::now();
 	cout << "BVH created in: " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() / 1000.f << "ms" << endl;
-	render(img, cam, bvh);
+	render_threaded(img, cam, bvh, 200, 500);
 	auto t2 = std::chrono::high_resolution_clock::now();
 	cout << "Rendered in: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.f << "ms" << endl;
 
