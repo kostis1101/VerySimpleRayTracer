@@ -66,7 +66,7 @@ std::vector<Triangle> read_obj_file(std::string filename) {
 
 		if (feof(file))
 			break;
-
+		
 		switch (data_type) {
 			case VERTEX: {
 				Vec3f v;

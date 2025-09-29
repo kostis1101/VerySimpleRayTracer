@@ -88,9 +88,13 @@ void render(cv::Mat& img, Camera& cam, std::vector<Triangle>& tris) {
 Vec3f shader(RayHitf& hit) {
 	Vec3f n = hit.tri->normal;
 	
-	float c = dot(n, Vec3f(0.2, -0.5, 0.3).normalized());
+	float t1 = dot(n, Vec3f(0.2, -0.5, 0.3).normalized());
+	float t2 = dot(n, Vec3f(0.2, 0.2, 0.2).normalized());
 
-	return Vec3f(c, c, c);
+	Vec3f c1(0.478539, 1.0, 0.415781);
+	Vec3f c2(1.0, 0.246392, 1.0);
+
+	return t1 * c1 * 0.5f + t2 * c2 * 0.5f;
 }
 
 void render(cv::Mat& img, Camera& cam, BVH& bvh) {
@@ -135,7 +139,6 @@ int main(int argc, char** argv)
 	render(img, cam, bvh);
 	auto t2 = std::chrono::high_resolution_clock::now();
 	cout << "Rendered in: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.f << "ms" << endl;
-
 
 	cv::imshow("window", img);
 	cv::waitKey(0);

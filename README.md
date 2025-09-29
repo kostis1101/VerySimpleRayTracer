@@ -11,6 +11,6 @@ So far the renderer supports the following:
 
 I purposefully didn't work on any reflection models, since I'd like to implement a more physically based model of light transport.
 
-On a single CPU core of an intel i7 processor, it renders the following 1000 x 1000 image of the Utah teapot in about 5 seconds:
+On a single CPU core of an intel i7 processor, it renders the following 1000 x 1000 image of the Utah teapot in about 4 seconds:
 
 <img width="1000" height="1000" alt="result" src="https://github.com/user-attachments/assets/33205b1a-4f93-4699-aeb7-08f5d560ca03" />

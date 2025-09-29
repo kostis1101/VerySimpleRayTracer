@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+
 using std::cout;
 using std::endl;
 
@@ -88,21 +89,16 @@ long long BVH_node::from_triangles(Triangle* tris, long tris_len, std::vector<BV
 	unsigned int newnode_index = nodes.size();
 	nodes.emplace_back(boundbox, tris, tris_len);
 
-	long long c1 = from_triangles(tris, i, nodes);
+	from_triangles(tris, i, nodes);
 	long long c2 = from_triangles(tris + i, tris_len - i, nodes);
-	nodes[newnode_index].children_indicies[0] = c1;
-	nodes[newnode_index].children_indicies[1] = c2;
-
-	//nodes[newnode_index].children_indicies[0] = from_triangles(tris, i, nodes);
-	//cout << nodes[newnode_index].children_indicies[0] << endl;
-	//nodes[newnode_index].children_indicies[1] = from_triangles(tris + i, tris_len - i, nodes);
-	//cout << nodes[newnode_index].children_indicies[1] << endl;
+	nodes[newnode_index].sec_child_index = c2;
 
 	return newnode_index;
 }
 	
 // slab method: en.wikipedia.org/wiki/Slab_method
-bool BVH_node::ray_intersect(Rayf& r) {
+// returns the distance from the intersection. If there is no intersection, returns INFINITY
+float BVH_node::ray_intersect(Rayf& r) {
 	float tmin[3] = {
 		(boundbox.min.x - r.origin.x) / r.direction.x,
 		(boundbox.min.y - r.origin.y) / r.direction.y,
@@ -118,15 +114,14 @@ bool BVH_node::ray_intersect(Rayf& r) {
 	float tclose = max3(std::min(tmin[0], tmin[1]), std::min(tmin[1], tmax[1]), std::min(tmin[2], tmax[2]));
 	float tfar = min3(std::max(tmin[0], tmin[1]), std::max(tmin[1], tmax[1]), std::max(tmin[2], tmax[2]));
 
-	return 0 <= tclose && tclose <= tfar;
+	if (0 <= tclose && tclose <= tfar)
+		return tclose;
+	return INFINITY;
 }
 
-RayHitf BVH_node::search_ray_hit(Rayf& r, std::vector<BVH_node> &nodes) {
-	if (!ray_intersect(r))
-		return {};
-	
-	// children[0] == -1 if and only if the node is a leaf
-	if (!children[0]) {
+RayHitf BVH_node::search_ray_hit(Rayf& r, std::vector<BVH_node> &nodes, float min_dist) {
+
+	if (!sec_child) {
 		float min_dist = std::numeric_limits<float>::infinity();
 		RayHitf hit;
 		for (int i = 0; i < tris_len; i++) {
@@ -140,16 +135,33 @@ RayHitf BVH_node::search_ray_hit(Rayf& r, std::vector<BVH_node> &nodes) {
 	}
 
 	// TODO: check which of the two children is in front and perform the first check there
-	RayHitf h1 = children[0]->search_ray_hit(r, nodes);
-	RayHitf h2 = children[1]->search_ray_hit(r, nodes);
 
-	if (!h1.hit)
+	float d1 = (this + 1)->ray_intersect(r);
+	float d2 = sec_child->ray_intersect(r);
+
+
+
+	RayHitf h1, h2;
+
+	if (min_dist <= d1 && min_dist <= d2)
+		return {};
+	else if (d1 < d2) {
+		h1 = (this + 1)->search_ray_hit(r, nodes, min_dist);
+		min_dist = min(h1.dist, min_dist);
+		if (d2 < min_dist)
+			h2 = sec_child->search_ray_hit(r, nodes, min_dist);
+	}
+	else {
+		h2 = sec_child->search_ray_hit(r, nodes, min_dist);
+		min_dist = min(h2.dist, min_dist);
+		if (d1 < min_dist)
+			h1 = (this + 1)->search_ray_hit(r, nodes, min_dist);
+	}
+
+	if (h2.dist < h1.dist)
 		return h2;
-	else if (!h2.hit)
-		return h1;
-	else if (h1.dist < h2.dist)
-		return h1;
-	else return h2;
+	return h1;
+
 }
 
 
