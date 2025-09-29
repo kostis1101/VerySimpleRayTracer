@@ -134,6 +134,17 @@ int main(int argc, char** argv)
 
 	auto t0 = std::chrono::high_resolution_clock::now();
 	BVH bvh = BVH(tris);
+
+/*	Rayf r(cam.pos, cam.dir);
+
+	cout << r.origin << " " << r.direction << endl;
+
+	bvh.search_ray_hit(r);
+
+	std::cin.get();
+
+	return 0;*/
+
 	auto t1 = std::chrono::high_resolution_clock::now();
 	cout << "BVH created in: " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() / 1000.f << "ms" << endl;
 	render(img, cam, bvh);

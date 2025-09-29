@@ -47,6 +47,13 @@ RayHitf Triangle::ray_intersect(Rayf& r) {
 		return {};
 }
 
+
+RayHitf Triangle::ray_intersect_bfc(Rayf& r) {
+	if (dot(r.direction, normal) > 0)
+		return {};
+	return ray_intersect(r);
+}
+
 Vec3f Triangle::center() {
 	return (p1 + p2 + p3) / 3.f;
 }

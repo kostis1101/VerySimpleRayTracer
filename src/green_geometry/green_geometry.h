@@ -17,6 +17,9 @@ struct Triangle {
 	Triangle(Vec3f p1, Vec3f p2, Vec3f p3, Vec3f normal);
 
 	RayHitf ray_intersect(Rayf& r);
+
+	/* with back face culling */
+	RayHitf ray_intersect_bfc(Rayf& r);
 	
 	/* reorients the normal of the Triangle, so that its dot product with the dir vector is non-negative */
 	void reorient_normal(Vec3f& dir);

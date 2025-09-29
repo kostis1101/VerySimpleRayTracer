@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef BVH_MAX_OBJ
-#define BVH_MAX_OBJ 10
+#define BVH_MAX_OBJ 20
 #endif
 
 #include "green_geometry.h"

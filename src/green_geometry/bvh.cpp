@@ -111,8 +111,8 @@ float BVH_node::ray_intersect(Rayf& r) {
 		(boundbox.max.z - r.origin.z) / r.direction.z,
 	};
 
-	float tclose = max3(std::min(tmin[0], tmin[1]), std::min(tmin[1], tmax[1]), std::min(tmin[2], tmax[2]));
-	float tfar = min3(std::max(tmin[0], tmin[1]), std::max(tmin[1], tmax[1]), std::max(tmin[2], tmax[2]));
+	float tclose = max3(std::min(tmin[0], tmax[0]), std::min(tmin[1], tmax[1]), std::min(tmin[2], tmax[2]));
+	float tfar = min3(std::max(tmin[0], tmax[0]), std::max(tmin[1], tmax[1]), std::max(tmin[2], tmax[2]));
 
 	if (0 <= tclose && tclose <= tfar)
 		return tclose;
@@ -121,11 +121,14 @@ float BVH_node::ray_intersect(Rayf& r) {
 
 RayHitf BVH_node::search_ray_hit(Rayf& r, std::vector<BVH_node> &nodes, float min_dist) {
 
+	//cout << r.at(ray_intersect(r)) << endl;
+	//cout << "[" << this->boundbox.min << ", " << this->boundbox.max << "]," << endl;
+
 	if (!sec_child) {
 		float min_dist = std::numeric_limits<float>::infinity();
 		RayHitf hit;
 		for (int i = 0; i < tris_len; i++) {
-			RayHitf h = tris[i].ray_intersect(r);
+			RayHitf h = tris[i].ray_intersect_bfc(r);
 			if (h.hit && h.dist < min_dist) {
 				min_dist = h.dist;
 				hit = h;
@@ -139,7 +142,62 @@ RayHitf BVH_node::search_ray_hit(Rayf& r, std::vector<BVH_node> &nodes, float mi
 	float d1 = (this + 1)->ray_intersect(r);
 	float d2 = sec_child->ray_intersect(r);
 
+/*	if (min_dist <= d1 && min_dist <= d2)
+		return {};
+	else if (min_dist <= d2)
+		return (this + 1)->search_ray_hit(r, nodes, min_dist);
+	else if (min_dist <= d1)
+		return sec_child->search_ray_hit(r, nodes, min_dist);
+	else if (d1 < d2) {
+		RayHitf h1 = (this + 1)->search_ray_hit(r, nodes, min_dist);
+		RayHitf h2;
+		min_dist = min(h1.dist, min_dist);
+		if (d2 < min_dist)
+			h2 = sec_child->search_ray_hit(r, nodes, min_dist);
+		if (h2.dist < h1.dist)
+			return h2;
+		return h1;
+	}
+	else {
+		RayHitf h1;
+		RayHitf h2 = sec_child->search_ray_hit(r, nodes, min_dist);
+		min_dist = min(h2.dist, min_dist);
+		if (d1 < min_dist)
+			h1 = (this + 1)->search_ray_hit(r, nodes, min_dist);
+		if (h2.dist < h1.dist)
+			return h2;
+		return h1;
+	}*/
 
+	//////////////////////////////////////////////////
+
+/*	BVH_node* child_close = this + 1;
+	BVH_node* child_far = sec_child;
+	float d_close = d1;
+	float d_far = d2;
+
+	if (d2 < d1) {
+		child_close = sec_child;
+		child_far = this + 1;
+
+		d_close = d2;
+		d_far = d1;
+	}
+
+	if (min_dist <= d_close)
+		return {};
+	h1 = child_close->search_ray_hit(r, nodes, min_dist);
+	min_dist = min(min_dist, h1.dist);
+	
+	if (min_dist <= d_far)
+		return h1;
+	h2 = child_far->search_ray_hit(r, nodes, min_dist);
+
+	if (h2.dist < h1.dist)
+		return h2;
+	return h1; */
+
+	//////////////////////////////////////////////////
 
 	RayHitf h1, h2;
 
